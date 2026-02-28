@@ -8,12 +8,16 @@ const router = express.Router();
 // Get company details (for any authenticated user)
 router.get('/my-company', authenticate, async (req, res) => {
   try {
+<<<<<<< HEAD
 
     if (!req.user.company) {
       return res.status(404).json({ message: 'Company details not found' });
     }
 
     const company = await Company.findById(req.user.company);
+=======
+    const company = await Company.findOne().sort({ createdAt: 1 });
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 
     if (!company) {
       return res.status(404).json({ message: 'Company not found' });
@@ -43,21 +47,32 @@ router.post('/', authenticate, isAdmin, [
     }
 
     // Check if company already exists for this admin
+<<<<<<< HEAD
     const existingCompany = await Company.findOne({ createdBy: req.user._id });
+=======
+    const existingCompany = await Company.findOne();
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     if (existingCompany) {
       return res.status(400).json({ message: 'Company details already exist. Use update instead.' });
     }
 
     const company = new Company({
       ...req.body,
+<<<<<<< HEAD
       createdBy: req.user._id
+=======
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     });
 
     await company.save();
 
+<<<<<<< HEAD
     req.user.company = company._id;
     await req.user.save();
 
+=======
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     res.status(201).json({
       message: 'Company details created successfully',
       company
@@ -98,6 +113,7 @@ router.put('/', authenticate, isAdmin, async (req, res) => {
 // Check if company exists
 router.get('/check', authenticate, async (req, res) => {
   try {
+<<<<<<< HEAD
     if (req.user.company) {
       return res.json({
         exists: true,
@@ -108,6 +124,13 @@ router.get('/check', authenticate, async (req, res) => {
     return res.json({
       exists: false,
       company: null
+=======
+    const company = await Company.findOne().sort({ createdAt: 1 });
+
+    res.json({
+      exists: !!company,
+      company: company || null
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     });
 
   } catch (error) {
@@ -117,5 +140,8 @@ router.get('/check', authenticate, async (req, res) => {
     });
   }
 });
+<<<<<<< HEAD
 
+=======
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 module.exports = router;

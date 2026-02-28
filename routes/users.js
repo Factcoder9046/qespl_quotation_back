@@ -2,6 +2,10 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+<<<<<<< HEAD
+=======
+const Company = require('../models/Company');
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 const { authenticate, isAdmin } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
@@ -45,12 +49,31 @@ const upload = multer({
 /* ================= GET ALL USERS ================= */
 router.get('/', authenticate, isAdmin, async (req, res) => {
   try {
+<<<<<<< HEAD
     const users = await User.find()
       .select('-password')
       .sort({ createdAt: -1 });
 
     res.json({ users });
   } catch (err) {
+=======
+    const company = await Company.findOne().sort({ createdAt: 1 });
+
+    let users;
+
+    if (company) {
+      users = await User.find({ company: company._id })
+        .select('-password')
+        .sort({ createdAt: -1 });
+    } else {
+      users = [];
+    }
+
+    res.json({ users });
+
+  } catch (err) {
+    console.error("GET USERS ERROR:", err);
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     res.status(500).json({ message: err.message });
   }
 });
@@ -83,6 +106,7 @@ router.post(
   async (req, res) => {
     try {
       const errors = validationResult(req);
+<<<<<<< HEAD
       if (!errors.isEmpty())
         return res.status(400).json({ errors: errors.array() });
 
@@ -94,13 +118,39 @@ router.post(
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+=======
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { name, email, password, role, phone } = req.body;
+
+      // 🔍 Check if email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already registered' });
+      }
+
+      // 🔐 Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // 🏢 Get global company (single company system)
+      const Company = require('../models/Company');
+      const existingCompany = await Company.findOne().sort({ createdAt: 1 });
+
+      // 👤 Create user
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       const user = await User.create({
         name,
         email,
         password: hashedPassword,
         role,
         phone,
+<<<<<<< HEAD
         company: req.user.company._id
+=======
+        company: existingCompany ? existingCompany._id : null
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       });
 
       res.status(201).json({
@@ -116,12 +166,21 @@ router.post(
           createdAt: user.createdAt
         }
       });
+<<<<<<< HEAD
     } catch (err) {
+=======
+
+    } catch (err) {
+      console.error('USER CREATE ERROR:', err);
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       res.status(500).json({ message: err.message });
     }
   }
 );
+<<<<<<< HEAD
 
+=======
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 /* ================= UPDATE USER (ADMIN) ================= */
 router.put('/:id', authenticate, isAdmin, async (req, res) => {
   try {

@@ -383,6 +383,27 @@ const quotationSchema = new mongoose.Schema(
     tax: { type: Number, default: 0 },
     total: { type: Number, required: true },
 
+<<<<<<< HEAD
+=======
+    // models/Quotation.js mein badlav:
+    termsAndConditions: {
+      priceValidity: { type: String, default: "30 Days from the date of Offer" },
+      paymentTerms: { type: String, default: "100 % advance" },
+      freight: { type: String, default: "Excluded" },
+      delivery: { type: String, default: "10–13 days as per Instruments from date of receipt" },
+      packing: { type: String, default: "Actual" },
+      forwarding: { type: String, default: "Actual" },
+      warranty: { type: String, default: "1 year from date of delivery On manufacturing defects" },
+      installation: { type: String, default: "Excluded" },
+      documents: { type: String, default: "Billing Address, Shipping Address, Road Permit, GST No." }
+    },
+
+    defaultTerms: {
+      type: String,
+      default: ""
+    },
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     status: {
       type: String,
       enum: ['in_process', 'revised', 'complete', 'failed'],
@@ -427,7 +448,11 @@ quotationSchema.pre('save', async function (next) {
       createdAt: { $gte: startOfMonth, $lte: endOfMonth }
     });
 
+<<<<<<< HEAD
     this.quotationNumber = `QES/QT/${month}${year}/${String(count + 1).padStart(3, '0')}`;
+=======
+    this.quotationNumber = `QES/QT/${month}/${year}/${String(count + 1).padStart(3, '0')}`;
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     next();
   } catch (err) {
     next(err);

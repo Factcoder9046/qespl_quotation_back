@@ -84,7 +84,11 @@ router.get('/', authenticate, permit('quotation', 'read'), async (req, res) => {
         .select(
           'quotationNumber customerName customerEmail total status createdAt createdBy statusHistory'
         )
+<<<<<<< HEAD
         .populate('createdBy', 'name')
+=======
+        .populate('createdBy', 'name email phone')
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
         .populate('statusHistory.updatedBy.userId', 'name role')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -341,7 +345,14 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
           if (!product) throw new Error('Product not found');
 
           const rate = item.rate ?? product.price;
+<<<<<<< HEAD
           const amount = item.quantity * rate;
+=======
+          const tax = item.tax ?? product.tax ?? 0;
+
+          const baseAmount = item.quantity * rate;
+          const taxAmount = (baseAmount * tax) / 100;
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 
           return {
             productId: product._id,
@@ -350,8 +361,13 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
             description: product.description,
             quantity: item.quantity,
             rate,
+<<<<<<< HEAD
             amount,
             tax: product.tax,
+=======
+            amount: baseAmount,
+            tax,
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
             parameters: product.parameters || [],
             generalSpecifications: product.generalSpecifications || []
           };
@@ -359,11 +375,24 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
       );
 
       quotation.items = itemsWithAmount;
+<<<<<<< HEAD
       quotation.subtotal = itemsWithAmount.reduce((s, i) => s + i.amount, 0);
       quotation.tax = itemsWithAmount.reduce(
         (s, i) => s + (i.amount * i.tax) / 100,
         0
       );
+=======
+      quotation.subtotal = itemsWithAmount.reduce(
+        (s, i) => s + (i.quantity * i.rate),
+        0
+      );
+
+      quotation.tax = itemsWithAmount.reduce(
+        (s, i) => s + ((i.quantity * i.rate * i.tax) / 100),
+        0
+      );
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       quotation.total = quotation.subtotal + quotation.tax;
 
       changedFields.push('items');
@@ -397,6 +426,30 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
       changedFields.push('notes');
     }
 
+<<<<<<< HEAD
+=======
+
+    /* ==================================================
+   TERMS & CONDITIONS UPDATE
+================================================== */
+    if (req.body.termsAndConditions) {
+      const incomingTerms = req.body.termsAndConditions;
+
+      if (!quotation.termsAndConditions) {
+        quotation.termsAndConditions = {}; // safety
+      }
+
+      Object.keys(incomingTerms).forEach(key => {
+        if (incomingTerms[key] !== undefined) {
+          quotation.termsAndConditions[key] = incomingTerms[key];
+        }
+      });
+
+      changedFields.push('termsAndConditions');
+    }
+
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
     /* ==================================================
        AFTER SNAPSHOT
     ================================================== */
@@ -462,7 +515,11 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
 
     // 🔥 RETURN FRESH POPULATED DATA
     const updatedQuotation = await Quotation.findById(quotation._id)
+<<<<<<< HEAD
       .populate('createdBy', 'name')
+=======
+      .populate('createdBy', 'name email phone')
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       .populate('statusHistory.updatedBy.userId', 'name role');
 
     res.json({
@@ -482,6 +539,131 @@ router.put('/:id', authenticate, permit('quotation', 'update'), async (req, res)
 /* ======================================================
    CREATE QUOTATION ✅ FIXED
 ====================================================== */
+<<<<<<< HEAD
+=======
+// router.post(
+//   '/',
+//   authenticate,
+//   permit('quotation', 'create'),
+//   [
+//     body('customerName').notEmpty(),
+//     body('customerEmail').isEmail(),
+//     body('items').isArray({ min: 1 })
+//   ],
+//   async (req, res) => {
+//     try {
+//       const errors = validationResult(req);
+//       if (!errors.isEmpty()) {
+//         return res.status(400).json({ errors: errors.array() });
+//       }
+
+//       const {
+//         customerName,
+//         customerEmail,
+//         customerPhone,
+//         customerAddress,
+//         items,
+//         notes,
+//         companyName,
+//         contactName,
+//         companyPhone,
+//         companyAddress,
+//         companyLogo,
+//         customerCompanyName,
+//         shippingDetails,
+//         customerId
+//       } = req.body;
+
+//       const itemsWithAmount = await Promise.all(
+//         items.map(async (item) => {
+//           const product = await Product.findById(item.productId).lean();
+//           if (!product) throw new Error('Product not found');
+
+//           const amount = item.quantity * product.price;
+
+//           return {
+//             productId: product._id,
+//             productName: product.productName,
+//             unitOfMeasure: product.unitOfMeasure,
+//             description: product.description,
+//             quantity: item.quantity,
+//             rate: product.price,
+//             amount,
+//             tax: product.tax,
+//             parameters: product.parameters || [],
+//             generalSpecifications: product.generalSpecifications || []
+//           };
+//         })
+//       );
+
+//       const subtotal = itemsWithAmount.reduce((s, i) => s + i.amount, 0);
+//       const taxAmount = itemsWithAmount.reduce(
+//         (s, i) => s + (i.amount * i.tax) / 100,
+//         0
+//       );
+
+//       const quotation = new Quotation({
+//         companyName,
+//         contactName,
+//         companyPhone,
+//         companyAddress,
+//         companyLogo,
+//         customerId,
+//         customerName,
+//         customerEmail,
+//         customerPhone,
+//         customerAddress,
+//         customerCompanyName,
+//         shippingDetails,
+//         items: itemsWithAmount,
+//         subtotal,
+//         tax: taxAmount,
+//         total: subtotal + taxAmount,
+//         notes,
+//         status: 'in_process',
+//         revision: 0,
+//         createdBy: req.user._id
+//       });
+
+//       // 🔥 TRACK POINT 1
+//       const initialSnapshot = JSON.parse(JSON.stringify({
+//         customerName: quotation.customerName,
+//         customerEmail: quotation.customerEmail,
+//         customerPhone: quotation.customerPhone,
+//         customerAddress: quotation.customerAddress,
+//         items: quotation.items,
+//         subtotal: quotation.subtotal,
+//         tax: quotation.tax,
+//         total: quotation.total
+//       }));
+
+//       initialSnapshot.hash = generateSnapshotHash(initialSnapshot);
+
+
+//       quotation.statusHistory.push({
+//         status: 'in_process',
+//         revision: 0,
+//         updatedBy: {
+//           userId: req.user._id,
+//           name: req.user.name
+//         },
+//         role: req.user.role,
+//         snapshot: {
+//           before: null,
+//           after: initialSnapshot
+//         }
+//       });
+
+
+//       await quotation.save();
+//       res.status(201).json({ message: 'Quotation created', quotation });
+//     } catch (err) {
+//       res.status(500).json({ message: err.message });
+//     }
+//   }
+// );
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 router.post(
   '/',
   authenticate,
@@ -512,15 +694,32 @@ router.post(
         companyLogo,
         customerCompanyName,
         shippingDetails,
+<<<<<<< HEAD
         customerId
       } = req.body;
 
+=======
+        customerId,
+        termsAndConditions, // Ab ye direct object aayega frontend se
+      } = req.body;
+
+      /* -----------------  PROCESS ITEMS  ------------------------ */
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       const itemsWithAmount = await Promise.all(
         items.map(async (item) => {
           const product = await Product.findById(item.productId).lean();
           if (!product) throw new Error('Product not found');
 
+<<<<<<< HEAD
           const amount = item.quantity * product.price;
+=======
+          // Agar frontend se rate bheja hai (edited) toh wo use karein, warna product price
+          const rate = item.rate ?? product.price;
+          const tax = item.tax ?? product.tax ?? 0;
+
+          const baseAmount = item.quantity * rate;
+          const taxAmount = (baseAmount * tax) / 100;
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 
           return {
             productId: product._id,
@@ -528,21 +727,41 @@ router.post(
             unitOfMeasure: product.unitOfMeasure,
             description: product.description,
             quantity: item.quantity,
+<<<<<<< HEAD
             rate: product.price,
             amount,
             tax: product.tax,
+=======
+            rate,
+            amount: baseAmount,
+            tax,
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
             parameters: product.parameters || [],
             generalSpecifications: product.generalSpecifications || []
           };
         })
       );
 
+<<<<<<< HEAD
       const subtotal = itemsWithAmount.reduce((s, i) => s + i.amount, 0);
       const taxAmount = itemsWithAmount.reduce(
         (s, i) => s + (i.amount * i.tax) / 100,
         0
       );
 
+=======
+      const subtotal = itemsWithAmount.reduce(
+        (s, i) => s + (i.quantity * i.rate),
+        0
+      );
+
+      const taxAmount = itemsWithAmount.reduce(
+        (s, i) => s + ((i.quantity * i.rate * i.tax) / 100),
+        0
+      );
+
+      /* ------------------- CREATE QUOTATION --------------------- */
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       const quotation = new Quotation({
         companyName,
         contactName,
@@ -556,17 +775,35 @@ router.post(
         customerAddress,
         customerCompanyName,
         shippingDetails,
+<<<<<<< HEAD
+=======
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
         items: itemsWithAmount,
         subtotal,
         tax: taxAmount,
         total: subtotal + taxAmount,
+<<<<<<< HEAD
         notes,
+=======
+
+        notes,
+
+        // Agar frontend se termsAndConditions ka object aaya hai toh wo save hoga,
+        // warna model ke default values automatically apply ho jayenge.
+        termsAndConditions: termsAndConditions || {},
+
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
         status: 'in_process',
         revision: 0,
         createdBy: req.user._id
       });
 
+<<<<<<< HEAD
       // 🔥 TRACK POINT 1
+=======
+      /* ------------------- SNAPSHOT --------------------- */
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       const initialSnapshot = JSON.parse(JSON.stringify({
         customerName: quotation.customerName,
         customerEmail: quotation.customerEmail,
@@ -580,7 +817,10 @@ router.post(
 
       initialSnapshot.hash = generateSnapshotHash(initialSnapshot);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       quotation.statusHistory.push({
         status: 'in_process',
         revision: 0,
@@ -589,6 +829,7 @@ router.post(
           name: req.user.name
         },
         role: req.user.role,
+<<<<<<< HEAD
         snapshot: {
           before: null,
           after: initialSnapshot
@@ -599,19 +840,37 @@ router.post(
       await quotation.save();
       res.status(201).json({ message: 'Quotation created', quotation });
     } catch (err) {
+=======
+        snapshot: { before: null, after: initialSnapshot }
+      });
+
+      await quotation.save();
+
+      res.status(201).json({ message: 'Quotation created', quotation });
+
+    } catch (err) {
+      console.error("Quotation Error:", err);
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
       res.status(500).json({ message: err.message });
     }
   }
 );
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 /* ======================================================
    GET SINGLE QUOTATION
 ====================================================== */
 router.get('/:id', authenticate, permit('quotation', 'read'), async (req, res) => {
   try {
     const quotation = await Quotation.findById(req.params.id)
+<<<<<<< HEAD
       .populate('createdBy', 'name email');
+=======
+      .populate('createdBy', 'name email phone');
+>>>>>>> b215e4a (pdf generation with terms editable update + tax update working + slash missing update)
 
     if (!quotation) {
       return res.status(404).json({ message: 'Quotation not found' });
